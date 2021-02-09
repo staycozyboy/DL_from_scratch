@@ -76,8 +76,9 @@ def square(x):
 def exp(x):
     return Exp()(x)
 
-x = Variable(np.array(0.5))
-y = square(exp(square(x)))
+if __name__ == '__main__':
+    x = Variable(np.array(0.5))
+    y = square(exp(square(x)))
 
-y.backward()
-print(x.grad)
+    y.backward()
+    print(x.grad)
