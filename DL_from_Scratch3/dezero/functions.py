@@ -48,3 +48,46 @@ class Tanh(Function):
 
 def tanh(x):
     return Tanh()(x)
+
+
+# =============================================================================
+# Tensor operations: reshape / transpose / get_item / expand_dims / flatten
+# =============================================================================
+class Reshape(Function):
+    def __init__(self, shape):
+        self.shape = shape
+    
+    def forward(self, x):
+        self.x_shape = x.shape
+        y = x.reshape(self.shape)   # Q. 책에서 numpy의 reshape함수를 쓴다고 되어 있는데, x는 Variable 인스턴스다. 즉, numpy의 reshape 함수가 호출되지 않는다. 아무리봐도 책이 틀린 것 같다.
+        return y
+    
+    def backward(self, gy):
+        return reshape(gy, self.x_shape)
+
+
+def reshape(x, shape):
+    if x.shape == shape:
+        return as_variable(x)
+    return Reshape(shape)(x)
+
+
+class Transpose(Function):
+    def __init__(self, axes=None):
+        self.axes = axes
+
+    def forward(self, x):
+        y = x.transpose(self.axes)
+        return y
+
+    def backward(self, gy):
+        if self.axes is None:
+            return transpose(gy)
+
+        axes_len = len(self.axes)
+        inv_axes = tuple(np.argsort([ax % axes_len for ax in self.axes]))
+        return transpose(gy, inv_axes)
+
+
+def transpose(x, axes=None):
+    return Transpose(axes)(x)
