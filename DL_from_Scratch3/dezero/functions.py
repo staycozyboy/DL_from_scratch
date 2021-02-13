@@ -1,5 +1,6 @@
 import numpy as np
 import dezero
+from dezero import utils
 from dezero.core import Function, Variable, as_variable, as_array
 
 
@@ -91,3 +92,26 @@ class Transpose(Function):
 
 def transpose(x, axes=None):
     return Transpose(axes)(x)
+
+
+# =============================================================================
+# sum / sum_to / broadcast_to / average / matmul / linear
+# =============================================================================
+class Sum(Function):
+    def __init__(self, axis, keepdims):
+        self.axis = axis
+        self.keepdims = keepdims
+
+    def forward(self, x):
+        self.x_shape = x.shape
+        y = x.sum(axis=self.axis, keepdims=sel.keepdims)
+        return y
+    
+    def backward(self, gy):
+        gy = utils.reshape_sum_backward(gy, self.x_shape, self.axis, self.keepdims)
+        gx = broadcast_to(gy, self.x_shape)
+        return gx
+    
+    
+def sum(x, axis=None, keepdims=False):
+    return Sum(axis, keepdims)(x)
