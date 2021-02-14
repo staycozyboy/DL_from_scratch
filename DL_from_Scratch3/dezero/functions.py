@@ -104,7 +104,7 @@ class Sum(Function):
 
     def forward(self, x):
         self.x_shape = x.shape
-        y = x.sum(axis=self.axis, keepdims=sel.keepdims)
+        y = x.sum(axis=self.axis, keepdims=self.keepdims)
         return y
     
     def backward(self, gy):
@@ -143,8 +143,7 @@ class BroadcastTo(Function):
 
     def forward(self, x):
         self.x_shape = x.shape
-        xp = dezero.cuda.get_array_module(x)
-        y = xp.broadcast_to(x, self.shape)
+        y = np.broadcast_to(x, self.shape)
         return y
 
     def backward(self, gy):
@@ -156,3 +155,19 @@ def broadcast_to(x, shape):
     if x.shape == shape:
         return as_variable(x)
     return BroadcastTo(shape)(x)
+
+
+class MatMul(Function):
+    def forward(self, x, W):
+        y = x.dot(W)
+        return y
+    
+    def backward(self, gy):
+        x, W = self.inputs
+        gx = matmul(gy, W.T)
+        gW = matmul(x.T, gy)
+        return gx, gW
+
+
+def matmul(x, W):
+    return MatMul()(x, W)
